@@ -5,12 +5,17 @@ require_once '../includes/functions.php';
 $error = '';
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    $userFunctions = new UserFunctions();
-    if ($userFunctions->login($_POST['username'], $_POST['password'])) {
-        header('Location: dashboard.php');
-        exit();
-    } else {
-        $error = 'Invalid username or password';
+    try {
+        $userFunctions = new UserFunctions();
+        if ($userFunctions->login($_POST['username'], $_POST['password'])) {
+            header('Location: dashboard.php');
+            exit();
+        } else {
+            $error = 'Invalid username or password';
+        }
+    } catch (Exception $e) {
+        $error = 'System error: ' . $e->getMessage();
+        error_log("Login page error: " . $e->getMessage());
     }
 }
 ?>
@@ -31,9 +36,18 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             
             <?php if ($error): ?>
                 <div style="background: rgba(255, 71, 87, 0.2); color: var(--danger); padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
-                    <?php echo $error; ?>
+                    <?php echo htmlspecialchars($error); ?>
                 </div>
             <?php endif; ?>
+            
+            <?php
+            // Check if PDO MySQL driver is available
+            if (!in_array('mysql', PDO::getAvailableDrivers())) {
+                echo '<div style="background: rgba(255, 71, 87, 0.2); color: var(--danger); padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">';
+                echo 'MySQL PDO driver is not installed. Please contact administrator.';
+                echo '</div>';
+            }
+            ?>
             
             <form method="POST" action="">
                 <div class="form-group">
